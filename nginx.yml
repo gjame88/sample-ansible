@@ -3,9 +3,10 @@
   hosts: all
   become: true
   vars:
-    action: install
+    action: install  # install 또는 remove를 선택하세요
 
   tasks:
+    # --- 설치 작업 ---
     - name: Enable nginx module
       ansible.builtin.command: "dnf module enable nginx:1.22 -y"
       when: action == 'install'
@@ -23,6 +24,7 @@
         enabled: true
       when: action == 'install'
 
+    # --- 제거 작업 ---
     - name: Stop nginx service
       ansible.builtin.service:
         name: nginx
@@ -41,6 +43,7 @@
       when: action == 'remove'
       ignore_errors: true
 
+    # --- Slack 알림 전송 (항상 실행) ---
     - name: Slack 알림 전송
       ansible.builtin.uri:
         url: "https://slack.com/api/chat.postMessage"
@@ -49,5 +52,5 @@
         headers:
           Authorization: "Bearer {{ slack_token }}"
         body:
-          channel: "aap-alerts"  # 채널 ID 또는 #을 뺀 채널명(aap-alerts) 입력
-          text: "작업 완료: {{ action }} 상태로 Nginx 관리 성공" # 변수명을 상단 vars와 일치시킴
+          channel: "aap-alerts"
+          text: "작업 완료: {{ action }} 상태로 Nginx 관리 성공"
