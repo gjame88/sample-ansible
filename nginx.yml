@@ -1,56 +1,23 @@
----
-- name: Nginx Lifecycle Management
-  hosts: all
-  become: true
+- name: Slack API(chat.postMessage) 메시지 전송 예제
+  hosts: localhost
+  gather_facts: false
   vars:
-    action: remove  # install 또는 remove를 선택하세요
-
+    # 아래 변수들은 AAP Extra Vars 또는 Credential에서 주입됩니다.
+    slack_message: "Hello, World!"
   tasks:
-    # --- 설치 작업 ---
-    - name: Enable nginx module
-      ansible.builtin.command: "dnf module enable nginx:1.22 -y"
-      when: action == 'install'
-
-    - name: Install nginx from official repo
-      ansible.builtin.dnf:
-        name: nginx
-        state: present
-      when: action == 'install'
-
-    - name: Start and enable nginx service
-      ansible.builtin.service:
-        name: nginx
-        state: started
-        enabled: true
-      when: action == 'install'
-
-    # --- 제거 작업 ---
-    - name: Stop nginx service
-      ansible.builtin.service:
-        name: nginx
-        state: stopped
-      when: action == 'remove'
-      ignore_errors: true
-
-    - name: Remove nginx package
-      ansible.builtin.dnf:
-        name: nginx
-        state: absent
-      when: action == 'remove'
-
-    - name: Reset nginx module
-      ansible.builtin.command: "dnf module reset nginx -y"
-      when: action == 'remove'
-      ignore_errors: true
-
-    # --- Slack 알림 전송 (항상 실행) ---
-    - name: Slack 알림 전송
+    - name: Send Slack message using chat.postMessage API
       ansible.builtin.uri:
         url: "https://slack.com/api/chat.postMessage"
         method: POST
-        body_format: json
         headers:
           Authorization: "Bearer {{ slack_token }}"
+          Content-Type: "application/json"
+        body_format: json
         body:
-          channel: "aap-alerts"
-          text: "작업 완료: {{ action }} 상태로 Nginx 관리 성공"
+          channel: "{{ slack_channel }}"
+          text: "{{ slack_message }}"
+      register: slack_result
+
+    - name: Slack 응답 결과 출력(debug)
+      ansible.builtin.debug:
+        var: slack_result.json
