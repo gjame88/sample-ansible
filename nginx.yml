@@ -1,9 +1,45 @@
-- name: Slack API(chat.postMessage) 메시지 전송 예제
+---
+# 첫 번째 플레이: 대상 서버에서 Nginx 관리 수행
+- name: Nginx 라이프사이클 관리
+  hosts: all
+  become: true
+  vars:
+    nginx_action: "install"   # install | remove | stop
+
+  tasks:
+    - name: nginx 설치
+      ansible.builtin.package:
+        name: nginx
+        state: present
+      when: nginx_action == "install"
+
+    - name: nginx 서비스 시작 및 활성화
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+      when: nginx_action == "install"
+
+    - name: nginx 중지
+      ansible.builtin.service:
+        name: nginx
+        state: stopped
+      when: nginx_action == "stop"
+
+    - name: nginx 제거
+      ansible.builtin.package:
+        name: nginx
+        state: absent
+      when: nginx_action == "remove"
+
+# 두 번째 플레이: 로컬에서 Slack 알림 발송
+- name: Slack API(chat.postMessage) 메시지 전송
   hosts: localhost
   gather_facts: false
   vars:
-    # 아래 변수들은 AAP Extra Vars 또는 Credential에서 주입됩니다.
-    slack_message: "Hello, World!"
+    # slack_token 및 slack_channel은 외부 변수(extra-vars) 또는 vault로 관리 권장
+    slack_message: "Nginx 작업이 완료되었습니다."
+  
   tasks:
     - name: Send Slack message using chat.postMessage API
       ansible.builtin.uri:
@@ -17,6 +53,7 @@
           channel: "{{ slack_channel }}"
           text: "{{ slack_message }}"
       register: slack_result
+      failed_when: not slack_result.json.ok
 
     - name: Slack 응답 결과 출력(debug)
       ansible.builtin.debug:
