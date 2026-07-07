@@ -3,7 +3,7 @@
   hosts: all
   become: true
   vars:
-    action: install
+    action: remove
 
   tasks:
     - name: Enable nginx module
