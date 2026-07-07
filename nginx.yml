@@ -4,7 +4,7 @@
   hosts: all
   become: true
   vars:
-    nginx_action: "install"   # install | remove | stop
+    nginx_action: "remove"   # install | remove | stop
 
   tasks:
     - name: nginx 설치
