@@ -40,6 +40,7 @@
       ansible.builtin.command: "dnf module reset nginx -y"
       when: action == 'remove'
       ignore_errors: true
+
     - name: Slack 알림 전송
       ansible.builtin.uri:
         url: "https://slack.com/api/chat.postMessage"
@@ -48,5 +49,5 @@
         headers:
           Authorization: "Bearer {{ slack_token }}"
         body:
-          channel: "{{ aap-alerts }}"
-          text: "작업 완료: {{ nginx_action }} 상태로 Nginx 관리 성공"
+          channel: "aap-alerts"  # 채널 ID 또는 #을 뺀 채널명(aap-alerts) 입력
+          text: "작업 완료: {{ action }} 상태로 Nginx 관리 성공" # 변수명을 상단 vars와 일치시킴
