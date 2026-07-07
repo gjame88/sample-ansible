@@ -48,5 +48,5 @@
         headers:
           Authorization: "Bearer {{ slack_token }}"
         body:
-          channel: "{{ slack_channel }}"
+          channel: "{{ aap-alerts }}"
           text: "작업 완료: {{ nginx_action }} 상태로 Nginx 관리 성공"
