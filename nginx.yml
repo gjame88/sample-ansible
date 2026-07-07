@@ -1,0 +1,42 @@
+---
+- name: Nginx Lifecycle Management
+  hosts: all
+  become: true
+  vars:
+    action: install
+
+  tasks:
+    - name: Enable nginx module
+      ansible.builtin.command: "dnf module enable nginx:1.22 -y"
+      when: action == 'install'
+
+    - name: Install nginx from official repo
+      ansible.builtin.dnf:
+        name: nginx
+        state: present
+      when: action == 'install'
+
+    - name: Start and enable nginx service
+      ansible.builtin.service:
+        name: nginx
+        state: started
+        enabled: true
+      when: action == 'install'
+
+    - name: Stop nginx service
+      ansible.builtin.service:
+        name: nginx
+        state: stopped
+      when: action == 'remove'
+      ignore_errors: true
+
+    - name: Remove nginx package
+      ansible.builtin.dnf:
+        name: nginx
+        state: absent
+      when: action == 'remove'
+
+    - name: Reset nginx module
+      ansible.builtin.command: "dnf module reset nginx -y"
+      when: action == 'remove'
+      ignore_errors: true
