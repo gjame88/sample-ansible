@@ -3,7 +3,7 @@
   hosts: all
   become: true
   vars:
-    action: install  # install 또는 remove를 선택하세요
+    action: remove  # install 또는 remove를 선택하세요
 
   tasks:
     # --- 설치 작업 ---
