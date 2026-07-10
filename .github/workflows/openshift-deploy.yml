@@ -1,16 +1,34 @@
 name: Deploy to OpenShift
+
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  deploy:
+    runs-on: self-hosted   # Self-hosted Runner 지정
     steps:
-      - uses: actions/checkout@v2
-      - name: Install OpenShift CLI
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Install oc CLI
         run: |
-          curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz | tar -xz -C /usr/local/bin oc
-      - name: Log in to OpenShift
-        run: ${{ secrets.OCP_TOKEN }} --insecure-skip-tls-verify
-      - name: Trigger Build
-        run: oc start-build cicd-demo-app --follow
+          curl -LO https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz
+          tar xzf openshift-client-linux.tar.gz
+          sudo mv oc /usr/local/bin/
+
+      - name: Login to OpenShift
+        run: |
+          oc login ${{ secrets.OPENSHIFT_SERVER }} \
+            --token=${{ secrets.OPENSHIFT_TOKEN }} \
+            --insecure-skip-tls-verify=true
+
+      - name: Trigger new build
+        run: |
+          oc project cicd-demo
+          oc start-build cicd-demo-app --follow
+
+      - name: Verify rollout
+        run: |
+          oc rollout status deployment/cicd-demo-app
