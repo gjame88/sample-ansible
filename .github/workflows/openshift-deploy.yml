@@ -1,0 +1,16 @@
+name: Deploy to OpenShift
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install OpenShift CLI
+        run: |
+          curl -L https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz | tar -xz -C /usr/local/bin oc
+      - name: Log in to OpenShift
+        run: ${{ secrets.OCP_TOKEN }} --insecure-skip-tls-verify
+      - name: Trigger Build
+        run: oc start-build cicd-demo-app --follow
